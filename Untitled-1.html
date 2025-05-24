@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find a Ride - Raahi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCmAnZmoJqH-Pq3ZwjE3D359IFw0B4LjRk&libraries=places"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ride-card {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .ride-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <h1 class="text-2xl font-bold text-gray-900">Find a Ride</h1>
+            <p class="text-gray-600">Search for available rides</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
+        <form id="searchForm" class="space-y-6">
+            <!-- Location Section -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-lg font-semibold mb-4">Route Details</h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pickup Location</label>
+                        <div class="relative">
+                            <i class="fas fa-circle text-green-500 absolute left-3 top-3 text-xs"></i>
+                            <input type="text" id="startingPoint" list="placesList" autocomplete="off" placeholder="Where are you starting from?" required class="pl-10 block w-full rounded-lg border-gray-300 border p-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Drop Location</label>
+                        <div class="relative">
+                            <i class="fas fa-map-marker-alt text-red-500 absolute left-3 top-3"></i>
+                            <input type="text" id="destination" list="placesList" autocomplete="off" placeholder="Where are you going?" required class="pl-10 block w-full rounded-lg border-gray-300 border p-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                            <div class="relative">
+                                <i class="fas fa-calendar absolute left-3 top-3 text-gray-400"></i>
+                                <input type="date" id="rideDate" required class="pl-10 block w-full rounded-lg border-gray-300 border p-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                            <div class="relative">
+                                <i class="fas fa-clock absolute left-3 top-3 text-gray-400"></i>
+                                <input type="time" id="rideTime" required class="pl-10 block w-full rounded-lg border-gray-300 border p-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div id="map" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+
+            <!-- Search Button -->
+            <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-200 flex items-center justify-center">
+                <span>Search Rides</span>
+                <div id="searchSpinner" class="loading-spinner ml-2 hidden"></div>
+            </button>
+        </form>
+
+        <!-- Results Section -->
+        <div id="searchResults" class="mt-6 space-y-4"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase functions
+        import { 
+            getCurrentUser, 
+            getUserProfile, 
+            getActiveRides,
+            getRide,
+            createBooking
+        } from './firebase.js';
+
+        // Initialize variables
+        let currentUser = null;
+        let userProfile = null;
+        let allRides = [];
+
+        // Check if user is logged in
+        async function initializePage() {
+            try {
+                currentUser = await getCurrentUser();
+                if (!currentUser) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                userProfile = await getUserProfile(currentUser.uid);
+                if (!userProfile || !userProfile.fullName) {
+                    window.location.href = 'Untitled-4.html';
+                    return;
+                }
+
+                // Set minimum date to today
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                document.getElementById('rideDate').min = `${yyyy}-${mm}-${dd}`;
+
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                alert('There was an error initializing the page. Please try again.');
+            }
+        }
+
+        // Initialize page when loaded
+        window.addEventListener('DOMContentLoaded', initializePage);
+
+        // Handle form submission
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const searchSpinner = document.getElementById('searchSpinner');
+            searchSpinner.classList.remove('hidden');
+
+            try {
+                // Get form values
+                const startingPoint = document.getElementById('startingPoint').value;
+                const destination = document.getElementById('destination').value;
+                const date = document.getElementById('rideDate').value;
+                const time = document.getElementById('rideTime').value;
+
+                // Get all active rides
+                const rides = await getActiveRides();
+                console.log('Fetched rides:', rides);
+                
+                // Filter rides based on search criteria
+                const filteredRides = rides.filter(ride => {
+                    if (!ride) return false;
+
+                    // Location matching (case-insensitive partial match)
+                    const pickupMatch = ride.startingPoint && 
+                        ride.startingPoint.toLowerCase().includes(startingPoint.toLowerCase());
+                    const dropMatch = ride.destination && 
+                        ride.destination.toLowerCase().includes(destination.toLowerCase());
+
+                    // Date matching
+                    const rideDate = new Date(ride.date);
+                    const searchDate = new Date(date);
+                    const dateMatch = rideDate.getFullYear() === searchDate.getFullYear() &&
+                                    rideDate.getMonth() === searchDate.getMonth() &&
+                                    rideDate.getDate() === searchDate.getDate();
+
+                    return pickupMatch && dropMatch && dateMatch;
+                });
+
+                console.log('Filtered rides:', filteredRides);
+
+                // Display results
+                const resultsDiv = document.getElementById('searchResults');
+                if (filteredRides.length === 0) {
+                    resultsDiv.innerHTML = '<p class="text-center text-gray-600">No rides found matching your criteria.</p>';
+                } else {
+                    resultsDiv.innerHTML = filteredRides.map(ride => `
+                        <div class="ride-card bg-white rounded-xl shadow-sm p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <img src="${ride.driverProfilePicture || 'https://ui-avatars.com/api/?name=User&background=10B981&color=fff'}" 
+                                             alt="Driver" class="w-10 h-10 rounded-full object-cover">
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900">${ride.driverName || 'User'}</h3>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <p class="text-gray-600">
+                                            <i class="fas fa-map-marker-alt text-green-600 mr-2"></i>
+                                            From: ${ride.startingPoint}
+                                        </p>
+                                        <p class="text-gray-600">
+                                            <i class="fas fa-map-marker text-green-600 mr-2"></i>
+                                            To: ${ride.destination}
+                                        </p>
+                                    </div>
+                                </div>
+                                <p class="text-lg font-bold text-green-600">₹${ride.price}</p>
+                            </div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-calendar mr-2"></i>
+                                    ${new Date(ride.date).toLocaleDateString()}
+                                </div>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    ${new Date(ride.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-user mr-2"></i>
+                                    ${ride.availableSeats} seats left
+                                </div>
+                            </div>
+                            <button onclick="requestRide('${ride.id}')" class="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 transition duration-200">
+                                Request Ride
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error searching for rides:', error);
+                const resultsDiv = document.getElementById('searchResults');
+                resultsDiv.innerHTML = '<p class="text-center text-red-600">Error searching for rides. Please try again.</p>';
+            } finally {
+                searchSpinner.classList.add('hidden');
+            }
+        });
+
+        // Request to join a ride
+        window.requestRide = async function(rideId) {
+            try {
+                if (!currentUser || !currentUser.uid) {
+                    alert('Please log in to request a ride');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!userProfile || !userProfile.fullName) {
+                    alert('Please complete your profile before requesting a ride');
+                    window.location.href = 'Untitled-4.html';
+                    return;
+                }
+
+                const ride = await getRide(rideId);
+                if (!ride) {
+                    throw new Error('Ride not found');
+                }
+
+                // Create booking data
+                const bookingData = {
+                    rideId: rideId,
+                    passengerId: currentUser.uid,
+                    passengerName: userProfile.fullName,
+                    passengerPhone: userProfile.phone || '',
+                    driverId: ride.driverId,
+                    driverName: ride.driverName,
+                    startingPoint: ride.startingPoint,
+                    destination: ride.destination,
+                    date: ride.date,
+                    price: ride.price,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+
+                // Create the booking
+                await createBooking(bookingData);
+                alert('Your ride request has been sent to the driver. You will be notified when they respond.');
+
+            } catch (error) {
+                console.error('Error requesting ride:', error);
+                alert('Failed to request ride. Please try again.');
+            }
+        };
+    </script>
+
+    <script>
+        // Initialize map
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let autocomplete;
+
+        function initMap() {
+            // Initialize map centered on India
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 20.5937, lng: 78.9629 },
+                zoom: 5,
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
+            });
+
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: true
+            });
+
+            // Initialize autocomplete for both inputs
+            const inputs = ['startingPoint', 'destination'];
+            inputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                autocomplete = new google.maps.places.Autocomplete(input, {
+                    componentRestrictions: { country: 'in' },
+                    fields: ['geometry', 'name', 'formatted_address']
+                });
+
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    if (place.geometry) {
+                        updateRoute();
+                    }
+                });
+            });
+        }
+
+        function updateRoute() {
+            const start = document.getElementById('startingPoint').value;
+            const end = document.getElementById('destination').value;
+
+            if (start && end) {
+                directionsService.route({
+                    origin: start,
+                    destination: end,
+                    travelMode: google.maps.TravelMode.DRIVING
+                }, (response, status) => {
+                    if (status === 'OK') {
+                        directionsRenderer.setDirections(response);
+                    }
+                });
+            }
+        }
+
+        // Initialize map when page loads
+        window.onload = initMap;
+    </script>
+</body>
+
+</html>

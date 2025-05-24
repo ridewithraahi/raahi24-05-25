@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Raahi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        'primary-dark': '#059669',
+                        'primary-light': '#d1fae5',
+                        secondary: '#3b82f6',
+                        'secondary-light': '#dbeafe'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional page-specific styles */
+        .hero-pattern {
+            background-color: #10b981;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* Animation styles */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444; /* Red */
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .opacity-0 {
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Firebase Rules Warning (hidden by default) -->
+    <div id="firebaseRulesWarning" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 mx-4 rounded shadow-sm hidden">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    <strong>Firebase Rules Warning:</strong> The app is using local storage due to Firebase security rules.
+                    <a href="#" id="rulesInfoLink" class="font-medium underline text-yellow-700 hover:text-yellow-600">
+                        Learn more
+                    </a>
+                </p>
+            </div>
+            <button id="closeWarningBtn" class="ml-auto pl-3 text-yellow-500 hover:text-yellow-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <!-- Logo/Title -->
+            <div class="text-2xl font-bold text-gray-900">Raahi</div>
+
+            <!-- Navigation Links -->
+            <nav>
+                <ul class="flex items-center space-x-6">
+                    <li>
+                        <a href="#" id="notificationsBtn" class="relative text-gray-600 hover:text-gray-900 font-medium">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span id="notificationBadge" class="notification-badge hidden">0</span>
+                        </a>
+                    </li>
+                    <li id="loginLink"><a href="login.html" class="text-gray-600 hover:text-gray-900 font-medium">Logout</a></li>
+                    <li id="logoutLink" class="hidden"><button id="logoutBtn" class="text-gray-600 hover:text-gray-900 font-medium">Logout</button></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6 -mt-6">
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <a href="Untitled-2.html" class="card quick-action-card bg-white p-6 text-center">
+                <div class="quick-action-icon bg-primary-light">
+                    <i class="fas fa-car text-primary text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 text-lg">Post a Ride</h3>
+                <p class="text-sm text-gray-600 mt-1">Share your journey with others</p>
+                <div class="mt-4 inline-block text-primary font-medium text-sm">
+                    <span>Get Started</span>
+                    <i class="fas fa-arrow-right ml-1"></i>
+                </div>
+            </a>
+            <a href="Untitled-1.html" class="card quick-action-card bg-white p-6 text-center">
+                <div class="quick-action-icon bg-secondary-light">
+                    <i class="fas fa-search text-secondary text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900 text-lg">Find a Ride</h3>
+                <p class="text-sm text-gray-600 mt-1">Join someone's journey</p>
+                <div class="mt-4 inline-block text-secondary font-medium text-sm">
+                    <span>Search Now</span>
+                    <i class="fas fa-arrow-right ml-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card p-6 mb-8 overflow-hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">Recent Activity</h2>
+                <a href="Untitled-9.html" class="text-primary text-sm font-medium hover:text-primary-dark transition duration-200">
+                    View All
+                    <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                </a>
+            </div>
+            <div id="recentActivity" class="space-y-4">
+                <!-- Loading skeleton -->
+                <div class="flex items-start space-x-4 skeleton-item">
+                    <div class="w-12 h-12 rounded-full skeleton"></div>
+                    <div class="flex-1">
+                        <div class="h-5 w-3/4 skeleton mb-2"></div>
+                        <div class="h-4 w-1/2 skeleton"></div>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4 skeleton-item">
+                    <div class="w-12 h-12 rounded-full skeleton"></div>
+                    <div class="flex-1">
+                        <div class="h-5 w-3/4 skeleton mb-2"></div>
+                        <div class="h-4 w-1/2 skeleton"></div>
+                    </div>
+                </div>
+                
+                <!-- No activity message (initially hidden) -->
+                <div id="noActivityMessage" class="empty-state hidden">
+                    <i class="fas fa-car-side empty-state-icon"></i>
+                    <p class="empty-state-text">No recent activity yet</p>
+                    <p class="empty-state-subtext">Your ride history will appear here</p>
+                    <a href="Untitled-2.html" class="mt-4 inline-block btn-primary">
+                        Post Your First Ride
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-2 gap-6 mb-8">
+            <div class="stat-card group">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-semibold text-gray-900">Total Rides</h3>
+                    <div class="w-10 h-10 rounded-full bg-primary-light flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                        <i class="fas fa-route text-primary group-hover:text-white"></i>
+                    </div>
+                </div>
+                <p id="totalRides" class="stat-value">0</p>
+                <div class="flex items-center mt-1">
+                    <p class="stat-label">Last 30 days</p>
+                    <span class="ml-2 text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">+0%</span>
+                </div>
+            </div>
+            <div class="stat-card group">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-semibold text-gray-900">CO₂ Saved</h3>
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-500 group-hover:text-white transition-all duration-300">
+                        <i class="fas fa-leaf text-green-600 group-hover:text-white"></i>
+                    </div>
+                </div>
+                <p id="co2Saved" class="stat-value">0 kg</p>
+                <div class="flex items-center mt-1">
+                    <p class="stat-label">By carpooling</p>
+                    <span class="ml-2 text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">Eco-friendly</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Rides -->
+        <div class="card p-6 mt-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Today's Rides</h2>
+            </div>
+            <div id="todayRides" class="space-y-4">
+                <!-- Loading skeleton -->
+                <div class="ride-card p-4 skeleton-item">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <div class="h-6 w-1/2 skeleton mb-2"></div>
+                            <div class="h-4 w-2/3 skeleton"></div>
+                        </div>
+                        <div class="h-6 w-16 skeleton"></div>
+                    </div>
+                    <div class="flex items-center mt-4 justify-between">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 rounded-full skeleton"></div>
+                            <div class="h-4 w-24 skeleton"></div>
+                        </div>
+                        <div class="h-8 w-20 skeleton rounded-lg"></div>
+                    </div>
+                </div>
+                
+                <!-- No rides message (initially hidden) -->
+                <div id="noTodayRidesMessage" class="empty-state hidden">
+                    <i class="fas fa-calendar-day empty-state-icon"></i>
+                    <p class="empty-state-text">No rides for today</p>
+                    <p class="empty-state-subtext">Check back later for new rides!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+        <div class="flex justify-around items-center h-16">
+            <a href="Untitled-5.html" class="bottom-nav-item active flex flex-col items-center text-sm">
+                <i class="fas fa-home text-xl mb-1"></i>
+                <span>Home</span>
+            </a>
+            <a href="Untitled-1.html" class="bottom-nav-item flex flex-col items-center text-sm text-gray-600">
+                <i class="fas fa-search text-xl mb-1"></i>
+                <span>Find</span>
+            </a>
+            <a href="Untitled-2.html" class="bottom-nav-item flex flex-col items-center text-sm text-gray-600 relative">
+                <div class="absolute -top-4 w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                    <i class="fas fa-plus text-white text-lg"></i>
+                </div>
+                <i class="fas fa-car text-xl mb-1 opacity-0"></i>
+                <span class="mt-1">Offer</span>
+            </a>
+            <a href="Untitled-9.html" class="bottom-nav-item flex flex-col items-center text-sm text-gray-600">
+                
+                <span>My Rides</span>
+            </a>
+            <a href="Untitled-4.html" class="bottom-nav-item flex flex-col items-center text-sm text-gray-600">
+    
+                <span>Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Notifications Modal (Hidden by default) -->
+    <div id="notificationsModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 hidden">
+        <div class="modal-content">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-900">Notifications</h3>
+                <button id="closeNotificationsBtn" class="text-gray-500 hover:text-gray-700 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="notificationsList" class="p-5 space-y-4">
+                <!-- Notifications will be loaded here -->
+                <div class="empty-state py-8">
+                    <i class="fas fa-bell empty-state-icon"></i>
+                    <p class="empty-state-text">No new notifications</p>
+                    <p class="empty-state-subtext">We'll notify you when there's activity</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase functions
+        import { 
+            getCurrentUser, 
+            getUserProfile, 
+            getActiveRides, 
+            getUserRides, 
+            getUserBookings,
+            logoutUser,
+            onUserProfileChange
+        } from './firebase.js';
+        import { ref, onChildChanged, onChildAdded } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js";
+        import { database } from './firebase.js';
+
+        // DOM Elements
+        const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const notificationsBtn = document.getElementById('notificationsBtn');
+        const notificationBadge = document.getElementById('notificationBadge');
+        const notificationsModal = document.getElementById('notificationsModal');
+        const closeNotificationsBtn = document.getElementById('closeNotificationsBtn');
+        const notificationsList = document.getElementById('notificationsList');
+        const recentActivity = document.getElementById('recentActivity');
+        const noActivityMessage = document.getElementById('noActivityMessage');
+        const totalRides = document.getElementById('totalRides');
+        const co2Saved = document.getElementById('co2Saved');
+        const availableRides = document.getElementById('availableRides');
+        const noRidesMessage = document.getElementById('noRidesMessage');
+        
+        // Firebase rules warning elements
+        const firebaseRulesWarning = document.getElementById('firebaseRulesWarning');
+        const rulesInfoLink = document.getElementById('rulesInfoLink');
+        const closeWarningBtn = document.getElementById('closeWarningBtn');
+        
+        // Check if user is logged in
+        let currentUser = null;
+        let userProfile = null;
+        
+        let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+
+        function addNotification(notification) {
+            notifications.unshift(notification);
+            if (notifications.length > 20) notifications = notifications.slice(0, 20);
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotificationBadge();
+        }
+
+        function updateNotificationBadge() {
+            const unread = notifications.filter(n => !n.read).length;
+            if (unread > 0) {
+                notificationBadge.textContent = unread;
+                notificationBadge.classList.remove('hidden');
+            } else {
+                notificationBadge.classList.add('hidden');
+            }
+        }
+
+        function renderNotifications() {
+            if (notifications.length === 0) {
+                notificationsList.innerHTML = `
+                    <div class="empty-state py-8">
+                        <i class="fas fa-bell empty-state-icon"></i>
+                        <p class="empty-state-text">No new notifications</p>
+                        <p class="empty-state-subtext">We'll notify you when there's activity</p>
+                    </div>
+                `;
+                return;
+            }
+            notificationsList.innerHTML = notifications.map((n, i) => `
+                <div class="card p-4 mb-3 ${n.read ? '' : 'bg-green-50'}">
+                    <div class="flex items-start">
+                        <div class="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <div class="flex justify-between items-start">
+                                <p class="font-medium text-gray-900">${n.title}</p>
+                                ${!n.read ? '<span class="text-xs text-primary font-medium">New</span>' : ''}
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">${n.body}</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <p class="text-xs text-gray-500">${n.time}</p>
+                                <button class="text-xs text-primary hover:text-primary-dark" onclick="markNotificationRead(${i})">Mark as read</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.markNotificationRead = function(idx) {
+            notifications[idx].read = true;
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            renderNotifications();
+            updateNotificationBadge();
+        };
+
+        function listenForBookingStatusChanges(passengerId) {
+            const bookingsRef = ref(database, 'bookings');
+            onChildChanged(bookingsRef, (snapshot) => {
+                const booking = snapshot.val();
+                if (booking.passengerId === passengerId && booking.status === 'approved') {
+                    const now = new Date();
+                    addNotification({
+                        title: 'Ride request approved',
+                        body: `Your ride request to ${booking.destination} was approved by ${booking.driverName}.`,
+                        time: now.toLocaleString(),
+                        read: false
+                    });
+                }
+            });
+        }
+        
+        // Listen for new booking requests (for drivers)
+        function listenForNewBookingRequests(driverId) {
+            const bookingsRef = ref(database, 'bookings');
+            onChildAdded(bookingsRef, (snapshot) => {
+                const booking = snapshot.val();
+                // Check if the booking is for the current driver and is pending
+                if (booking.driverId === driverId && booking.status === 'pending') {
+                    const now = new Date();
+                    addNotification({
+                        title: 'New booking request',
+                        body: `You have a new booking request from ${booking.passengerName} for a ride to ${booking.destination || 'destination'}.`,
+                        time: now.toLocaleString(),
+                        read: false
+                    });
+                }
+            });
+        }
+
+        async function checkAuthState() {
+            try {
+                currentUser = await getCurrentUser();
+                if (!currentUser) {
+                    // User not logged in, show Login and Sign Up links, hide Logout
+                    document.getElementById('loginLink').classList.remove('hidden');
+                    document.getElementById('logoutLink').classList.add('hidden');
+                    return;
+                }
+                userProfile = await getUserProfile(currentUser.uid);
+                if (!userProfile) {
+                    window.location.href = 'Untitled-6.html';
+                    return;
+                }
+                // User is logged in, hide Login and Sign Up links, show Logout
+                document.getElementById('loginLink').classList.add('hidden');
+                document.getElementById('logoutLink').classList.remove('hidden');
+                
+                onUserProfileChange(currentUser.uid, (updatedProfile) => {
+                    if (updatedProfile) {
+                        userProfile = updatedProfile;
+                        updateUserInfo();
+                    }
+                });
+                updateUserInfo();
+                loadRecentActivity();
+                loadStatistics();
+                // Listen for booking status changes (ride approved - passenger)
+                listenForBookingStatusChanges(currentUser.uid);
+                // Listen for new booking requests (pending - driver)
+                listenForNewBookingRequests(currentUser.uid);
+                // Render notifications from localStorage and update badge on load
+                renderNotifications(); // Ensure existing notifications are rendered
+                updateNotificationBadge();
+            } catch (error) {
+                console.error('Auth state check error:', error);
+                // In case of auth errors, ensure login/signup are visible
+                document.getElementById('loginLink').classList.remove('hidden');
+                document.getElementById('logoutLink').classList.add('hidden');
+            }
+        }
+        
+        function updateUserInfo() {
+            // Update user name in header
+            if (userProfile && userProfile.fullName) {
+                userName.textContent = userProfile.fullName.split(' ')[0];
+            }
+        }
+        
+        async function loadRecentActivity() {
+            try {
+                console.log('Attempting to load recent activity...');
+                // Get only the logged-in user's rides and bookings
+                const [userRides, userBookings] = await Promise.all([
+                    getUserRides(currentUser.uid),
+                    getUserBookings(currentUser.uid)
+                ]);
+                
+                console.log('Fetched user rides:', userRides);
+                console.log('Fetched user bookings:', userBookings);
+
+                // Combine and sort by date
+                const activities = [
+                    ...userRides.map(ride => ({
+                        type: 'ride',
+                        data: ride,
+                        date: new Date(ride.createdAt)
+                    })),
+                    ...userBookings.map(booking => ({
+                        type: 'booking',
+                        data: booking,
+                        date: new Date(booking.createdAt)
+                    }))
+                ].sort((a, b) => b.date - a.date).slice(0, 5);
+                
+                console.log('Combined and sorted activities:', activities);
+
+                // Remove skeleton loaders
+                const skeletons = recentActivity.querySelectorAll('.skeleton-item');
+                skeletons.forEach(skeleton => {
+                    skeleton.remove();
+                });
+                
+                if (activities.length === 0) {
+                    console.log('No recent activity found for this user.');
+                    setTimeout(() => {
+                        noActivityMessage.classList.remove('hidden');
+                    }, 300);
+                    return;
+                }
+                
+                // Create activity items
+                console.log(`Rendering ${activities.length} recent activities.`);
+                activities.forEach((activity, index) => {
+                    const activityItem = document.createElement('div');
+                    activityItem.className = 'flex items-start space-x-4 card p-4 mb-3';
+                    
+                    let iconClass, iconBgClass, title, subtitle, statusBadge = '';
+                    
+                    if (activity.type === 'ride') {
+                        const ride = activity.data;
+                        const status = ride.status || 'active';
+                        
+                        if (status === 'completed') {
+                            iconClass = 'fa-check';
+                            iconBgClass = 'bg-green-100 text-green-600';
+                            title = `Ride completed to ${ride.destination}`;
+                            statusBadge = '<span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full ml-2">Completed</span>';
+                        } else if (status === 'active') {
+                            iconClass = 'fa-car';
+                            iconBgClass = 'bg-primary-light text-primary';
+                            title = `Ride offered to ${ride.destination}`;
+                            statusBadge = '<span class="text-xs px-2 py-1 bg-primary-light text-primary rounded-full ml-2">Active</span>';
+                        } else {
+                            iconClass = 'fa-times';
+                            iconBgClass = 'bg-red-100 text-red-600';
+                            title = `Ride cancelled to ${ride.destination}`;
+                            statusBadge = '<span class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full ml-2">Cancelled</span>';
+                        }
+                        
+                        // Format date
+                        const rideDate = new Date(ride.date);
+                        const formattedDate = rideDate.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        
+                        subtitle = `
+                            <div class="flex items-center mt-2">
+                                <div class="flex items-center mr-3">
+                                    <i class="fas fa-calendar-alt text-gray-500 mr-1"></i>
+                                    <span>${formattedDate}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-gray-500 mr-1"></i>
+                                    <span>${formatTime12Hour(ride.time)}</span>
+                                </div>
+                                <div class="flex items-center ml-3">
+                                    <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>
+                                    <span>${ride.price}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        const booking = activity.data;
+                        const status = booking.status || 'pending';
+                        
+                        if (status === 'approved') {
+                            iconClass = 'fa-check-circle';
+                            iconBgClass = 'bg-green-100 text-green-600';
+                            title = `Booking confirmed to ${booking.destination || 'destination'}`;
+                            statusBadge = '<span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full ml-2">Approved</span>';
+                        } else if (status === 'pending') {
+                            iconClass = 'fa-clock';
+                            iconBgClass = 'bg-yellow-100 text-yellow-600';
+                            title = `Booking pending to ${booking.destination || 'destination'}`;
+                            statusBadge = '<span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full ml-2">Pending</span>';
+                        } else if (status === 'completed') {
+                            iconClass = 'fa-check-double';
+                            iconBgClass = 'bg-green-100 text-green-600';
+                            title = `Ride completed to ${booking.destination || 'destination'}`;
+                            statusBadge = '<span class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full ml-2">Completed</span>';
+                        } else {
+                            iconClass = 'fa-times-circle';
+                            iconBgClass = 'bg-red-100 text-red-600';
+                            title = `Booking declined to ${booking.destination || 'destination'}`;
+                            statusBadge = '<span class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full ml-2">Declined</span>';
+                        }
+                        
+                        // Format date if available
+                        let dateInfo = '';
+                        if (booking.date) {
+                            const bookingDate = new Date(booking.date);
+                            const formattedDate = bookingDate.toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric' 
+                            });
+                            
+                            dateInfo = `
+                                <div class="flex items-center mt-2">
+                                    <div class="flex items-center mr-3">
+                                        <i class="fas fa-calendar-alt text-gray-500 mr-1"></i>
+                                        <span>${formattedDate}</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock text-gray-500 mr-1"></i>
+                                        <span>${booking.time || 'N/A'}</span>
+                                    </div>
+                                    <div class="flex items-center ml-3">
+                                        <i class="fas fa-rupee-sign text-gray-500 mr-1"></i>
+                                        <span>${booking.price || 'N/A'}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        subtitle = dateInfo || `<p class="text-sm text-gray-600 mt-1">Booking ID: ${booking.id.substring(0, 8)}</p>`;
+                    }
+                    
+                    activityItem.innerHTML = `
+                        <div class="w-12 h-12 ${iconBgClass} rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center">
+                                <p class="font-medium text-gray-900">${title}</p>
+                                ${statusBadge}
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">
+                                <i class="fas fa-map-marker-alt text-gray-500 mr-1"></i>
+                                ${activity.data.startingPoint || 'Starting point'} to ${activity.data.destination || 'Destination'}
+                            </p>
+                            ${subtitle}
+                        </div>
+                    `;
+                    
+                    recentActivity.appendChild(activityItem);
+                });
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                
+                // Remove skeleton loaders
+                const skeletons = recentActivity.querySelectorAll('.skeleton-item');
+                skeletons.forEach(skeleton => {
+                    skeleton.remove();
+                });
+                
+                // Show error message
+                setTimeout(() => {
+                    if (error.message && error.message.includes('PERMISSION_DENIED')) {
+                        recentActivity.innerHTML = `
+                            <div class="text-center py-6">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mb-3"></i>
+                                <p class="text-gray-700 font-medium">Firebase Permission Error</p>
+                                <p class="text-sm text-gray-500 mb-3">Using local data until Firebase rules are updated</p>
+                                <button id="showRulesInfoBtn" class="mt-2 btn-outline text-sm">
+                                    <i class="fas fa-info-circle mr-1"></i> Show Rules Info
+                                </button>
+                            </div>
+                        `;
+                        
+                        // Add event listener for the rules info button
+                        document.getElementById('showRulesInfoBtn').addEventListener('click', function() {
+                            alert(`Firebase Rules Issue:
+
+Your Firebase database has security rules that are preventing read/write operations.
+
+To fix this, update your Firebase Realtime Database rules in the Firebase console:
+
+1. Go to the Firebase Console
+2. Select your project "raahi-2b943"
+3. Click on "Realtime Database" in the sidebar
+4. Click on the "Rules" tab
+5. Update the rules to allow authenticated users to read/write data
+
+See the firebase-rules-guide.txt file for detailed rules configuration.`);
+                        });
+                    } else {
+                        recentActivity.innerHTML = `
+                            <div class="text-center py-6">
+                                <i class="fas fa-exclamation-circle text-red-500 text-3xl mb-3"></i>
+                                <p class="text-gray-700 font-medium">Could not load recent activity</p>
+                                <p class="text-sm text-gray-500 mb-3">Please check your connection and try again</p>
+                                <button class="mt-2 btn-primary text-sm" onclick="window.location.reload()">
+                                    <i class="fas fa-redo mr-1"></i> Try Again
+                                </button>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            }
+        }
+        
+        async function loadStatistics() {
+            try {
+                // Get user's rides and bookings
+                const [userRides, userBookings] = await Promise.all([
+                    getUserRides(currentUser.uid),
+                    getUserBookings(currentUser.uid)
+                ]);
+                
+                // Calculate total rides in last 30 days
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                
+                const recentRides = userRides.filter(ride => 
+                    new Date(ride.createdAt) >= thirtyDaysAgo
+                );
+                
+                const recentBookings = userBookings.filter(booking => 
+                    new Date(booking.createdAt) >= thirtyDaysAgo && 
+                    (booking.status === 'completed' || booking.status === 'approved')
+                );
+                
+                // Calculate previous month's rides for comparison
+                const sixtyDaysAgo = new Date();
+                sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+                
+                const previousMonthRides = userRides.filter(ride => 
+                    new Date(ride.createdAt) >= sixtyDaysAgo && 
+                    new Date(ride.createdAt) < thirtyDaysAgo
+                );
+                
+                const previousMonthBookings = userBookings.filter(booking => 
+                    new Date(booking.createdAt) >= sixtyDaysAgo && 
+                    new Date(booking.createdAt) < thirtyDaysAgo && 
+                    (booking.status === 'completed' || booking.status === 'approved')
+                );
+                
+                const totalRidesCount = recentRides.length + recentBookings.length;
+                const previousMonthTotal = previousMonthRides.length + previousMonthBookings.length;
+                
+                // Calculate percentage change
+                let percentChange = 0;
+                let changeClass = 'bg-gray-100 text-gray-800';
+                
+                if (previousMonthTotal > 0) {
+                    percentChange = Math.round(((totalRidesCount - previousMonthTotal) / previousMonthTotal) * 100);
+                    
+                    if (percentChange > 0) {
+                        changeClass = 'bg-green-100 text-green-800';
+                    } else if (percentChange < 0) {
+                        changeClass = 'bg-red-100 text-red-800';
+                        percentChange = Math.abs(percentChange);
+                    }
+                }
+                
+                // Update total rides with animation
+                const currentTotal = parseInt(totalRides.textContent) || 0;
+                animateCounter(totalRides, currentTotal, totalRidesCount);
+                
+                // Update percentage change badge
+                const percentageElement = totalRides.parentElement.querySelector('.ml-2');
+                if (percentageElement) {
+                    percentageElement.className = `ml-2 text-xs px-2 py-1 rounded-full ${changeClass}`;
+                    percentageElement.textContent = percentChange === 0 ? 'No change' : `${percentChange > 0 ? '+' : '-'}${percentChange}%`;
+                }
+                
+                // Calculate CO2 saved (rough estimate: 0.5kg per ride)
+                const co2SavedAmount = Math.round(totalRidesCount * 0.5);
+                
+                // Update CO2 saved with animation
+                const currentCO2 = parseInt(co2Saved.textContent) || 0;
+                animateCounter(co2Saved, currentCO2, co2SavedAmount, ' kg');
+                
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                totalRides.textContent = '0';
+                co2Saved.textContent = '0 kg';
+            }
+        }
+        
+        // Helper function to animate counter
+        function animateCounter(element, start, end, suffix = '') {
+            const duration = 1000; // ms
+            const frameDuration = 1000 / 60; // 60fps
+            const totalFrames = Math.round(duration / frameDuration);
+            const increment = (end - start) / totalFrames;
+            
+            let currentFrame = 0;
+            let currentValue = start;
+            
+            const animate = () => {
+                currentFrame++;
+                currentValue += increment;
+                
+                element.textContent = Math.round(currentValue) + suffix;
+                
+                if (currentFrame < totalFrames) {
+                    requestAnimationFrame(animate);
+                } else {
+                    element.textContent = end + suffix;
+                }
+            };
+            
+            animate();
+        }
+        
+        function formatTime12Hour(timeStr) {
+            if (!timeStr) return 'N/A';
+            const [hour, minute] = timeStr.split(':');
+            if (hour === undefined || minute === undefined) return 'N/A';
+            let h = parseInt(hour, 10);
+            const m = minute.padStart(2, '0');
+            if (isNaN(h)) return 'N/A';
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            if (h === 0) h = 12;
+            return `${h}:${m} ${ampm}`;
+        }
+
+        async function loadTodayRides() {
+            try {
+                const todayRides = document.getElementById('todayRides');
+                const noTodayRidesMessage = document.getElementById('noTodayRidesMessage');
+                
+                // Get all active rides
+                const rides = await getActiveRides();
+                
+                // Get today's date in IST
+                const today = new Date();
+                const todayIST = new Date(today.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+                todayIST.setHours(0, 0, 0, 0);
+                
+                // Filter today's rides
+                const todaysRides = rides.filter(ride => {
+                    if (!ride.date) return false;
+                    const rideDate = new Date(ride.date);
+                    const rideDateIST = new Date(rideDate.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+                    rideDateIST.setHours(0, 0, 0, 0);
+                    return rideDateIST.getTime() === todayIST.getTime();
+                });
+                
+                // Sort by time
+                todaysRides.sort((a, b) => {
+                    const timeA = a.time ? a.time.split(':').map(Number) : [0, 0];
+                    const timeB = b.time ? b.time.split(':').map(Number) : [0, 0];
+                    return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
+                });
+                
+                // Clear old content
+                todayRides.innerHTML = '';
+                
+                if (todaysRides.length === 0) {
+                    noTodayRidesMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                noTodayRidesMessage.classList.add('hidden');
+                
+                // Render today's rides
+                todaysRides.forEach(async (ride, index) => {
+                    try {
+                        const driverProfile = await getUserProfile(ride.driverId);
+                        const driverName = driverProfile?.fullName || 'Unknown Driver';
+                        const driverImage = driverProfile?.profilePicture || 'https://via.placeholder.com/150';
+                        const startingPoint = ride.startingPoint || 'Unknown';
+                        const destination = ride.destination || 'Unknown';
+                        const price = ride.price !== undefined ? ride.price : 'N/A';
+                        const time = ride.time || 'N/A';
+                        const availableSeats = ride.availableSeats || 0;
+                        
+                        let seatStatus, seatColor;
+                        if (availableSeats === 0) {
+                            seatStatus = 'Full';
+                            seatColor = 'text-red-600 bg-red-50';
+                        } else if (availableSeats === 1) {
+                            seatStatus = '1 seat left';
+                            seatColor = 'text-yellow-600 bg-yellow-50';
+                        } else {
+                            seatStatus = `${availableSeats} seats left`;
+                            seatColor = 'text-green-600 bg-green-50';
+                        }
+                        
+                        const rideCard = document.createElement('div');
+                        rideCard.className = 'ride-card p-4 cursor-pointer';
+                        rideCard.innerHTML = `
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <div class="flex items-center">
+                                        <h3 class="font-semibold text-gray-900">${startingPoint} to ${destination}</h3>
+                                        <span class="ml-2 text-xs px-2 py-1 rounded-full ${seatColor}">${seatStatus}</span>
+                                    </div>
+                                    <div class="flex items-center mt-1 text-sm text-gray-600">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-clock text-primary mr-1"></i>
+                                            <span>${time !== 'N/A' ? formatTime12Hour(time) : 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-lg font-bold text-primary">₹${price}</div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="ml-0">
+                                        <p class="text-sm font-medium">${driverName}</p>
+                                    </div>
+                                </div>
+                                <button class="px-3 py-1.5 bg-primary text-white text-sm rounded-lg hover:bg-primary-dark transition duration-200" onclick="event.stopPropagation(); sessionStorage.setItem('selectedRideId', '${ride.id}'); window.location.href = 'ride-details.html';">
+                                    Book Now
+                                </button>
+                            </div>
+                        `;
+                        
+                        rideCard.addEventListener('click', () => {
+                            sessionStorage.setItem('selectedRideId', ride.id);
+                            window.location.href = 'ride-details.html';
+                        });
+                        
+                        todayRides.appendChild(rideCard);
+                    } catch (error) {
+                        console.error('Error loading today\'s ride:', error);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading today\'s rides:', error);
+                const todayRides = document.getElementById('todayRides');
+                todayRides.innerHTML = `
+                    <div class="text-center py-6">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mb-3"></i>
+                        <p class="text-gray-700 font-medium">Firebase Permission Error</p>
+                        <p class="text-sm text-gray-500">Please try again later</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await checkAuthState(); // Explicitly call checkAuthState here
+
+                // The rest of the initialization logic follows
+                
+                // Load available rides and today's rides
+                await Promise.all([
+                    loadTodayRides()
+                ]);
+                
+                // Load recent activity
+                loadRecentActivity();
+
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>
